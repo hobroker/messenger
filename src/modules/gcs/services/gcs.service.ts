@@ -1,7 +1,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { Bucket, Storage } from '@google-cloud/storage';
-import { propEq } from 'rambda';
+import { propEq, toString } from 'rambda';
 import { gcsConfig } from '../gcs.config';
 
 @Injectable()
@@ -18,8 +18,40 @@ export class GcsService implements OnModuleInit {
     });
   }
 
+  async onModuleInit() {
+    this.bucket = await this.getBucket();
+  }
+
   getBucket() {
     return this.upsertBucket(this.config.bucketName);
+  }
+
+  async upsertFileContents(
+    fileName: string,
+    defaultContents: string,
+  ): Promise<string> {
+    const file = this.bucket.file(fileName);
+
+    return file
+      .download()
+      .then(toString)
+      .catch(() => {
+        return this.saveFile(fileName, defaultContents);
+      });
+  }
+
+  async getFileContents(fileName: string): Promise<string> {
+    const file = this.bucket.file(fileName);
+
+    return file.download().then(toString);
+  }
+
+  async saveFile(fileName: string, contents: string) {
+    const file = this.bucket.file(fileName);
+
+    await file.save(contents);
+
+    return contents;
   }
 
   private async upsertBucket(name): Promise<Bucket> {
@@ -31,9 +63,5 @@ export class GcsService implements OnModuleInit {
     }
 
     return this.storage.createBucket(name).then(([bucket]) => bucket);
-  }
-
-  async onModuleInit() {
-    this.bucket = await this.getBucket();
   }
 }
