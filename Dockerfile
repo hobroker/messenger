@@ -5,7 +5,6 @@ ARG PORT
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-COPY .env ./.env
 
 RUN npm ci
 
@@ -20,7 +19,6 @@ ENV NODE_ENV "production"
 
 WORKDIR /usr/src/app
 
-COPY --from=BUILD_IMAGE /usr/src/app/.env ./.env
 COPY --from=BUILD_IMAGE /usr/src/app/package*.json ./
 COPY --from=BUILD_IMAGE /usr/src/app/dist ./dist
 COPY --from=BUILD_IMAGE /usr/src/app/node_modules ./node_modules
