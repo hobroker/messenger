@@ -12,7 +12,7 @@ export class FileActionsService {
   decrement(raw: string) {
     const number = Number(raw);
 
-    return toString(number + 1);
+    return toString(number - 1);
   }
 
   handle(action: string, raw: string) {
